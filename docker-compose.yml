@@ -1,4 +1,18 @@
 services:
+  app:
+    build: '.'
+    container_name: ecommerce_app
+    ports:
+      - "3000:9000"
+    env_file:
+      - 'src/common/environments/.env'
+    depends_on:
+      - postgres
+      - kafka
+      - mongodb
+    networks:
+      - ecommerce_network
+
   postgres:
     image: postgres:16
     container_name: ecommerce_postgres
