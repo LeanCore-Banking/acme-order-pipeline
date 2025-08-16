@@ -143,6 +143,27 @@ services:
       timeout: 10s
       retries: 5
 
+  inventories:
+    build: ./microservices/inventories
+    container_name: inventories
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PG_USER=${POSTGRES_USER}
+      - PG_PASSWORD=${POSTGRES_PASSWORD}
+      - PG_DATABASE=${POSTGRES_DB}
+      - PG_HOST=${POSTGRES_HOST}
+    ports:
+      - "3002:3002"
+    networks:
+      - ecommerce_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
     driver: local
