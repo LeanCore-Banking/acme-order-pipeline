@@ -36,7 +36,6 @@ const Inventory = sequelize.define(
   }
 );
 
-// Asociaciones
 Product.hasOne(Inventory, { foreignKey: "product_id" });
 Inventory.belongsTo(Product, { foreignKey: "product_id" });
 

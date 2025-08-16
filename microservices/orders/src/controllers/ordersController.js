@@ -2,7 +2,7 @@ const {
   createOrderService,
   getOrderByIdService,
   getAllOrdersService,
-} = require("../services/orderService");
+} = require("../services/ordersService");
 
 async function createOrder(req, res) {
   const orderData = req.body;
