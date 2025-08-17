@@ -11,9 +11,15 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.get("/inventory/products", getAllInventoryProducts);
-app.get("/inventory/products/:sku", getInventoryProductBySku);
-app.get("/", (req, res) => res.send("Inventories Service API is running!"));
+const v1Router = express.Router();
+
+v1Router.get("/products", getAllInventoryProducts);
+v1Router.get("/products/:sku/inventory", getInventoryProductBySku);
+v1Router.get("/", (req, res) =>
+  res.send("Inventories Service API is running!")
+);
+
+app.use("/api/v1", v1Router);
 
 sequelize
   .authenticate()

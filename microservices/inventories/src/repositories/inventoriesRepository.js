@@ -14,7 +14,19 @@ async function getAllProducts() {
   });
 }
 
+async function increseReservedQuantityByProductId(
+  productId,
+  quantityToReserve
+) {
+  const result = await Inventory.increment(
+    { reserved_quantity: quantityToReserve },
+    { where: { product_id: productId } }
+  );
+  return result;
+}
+
 module.exports = {
   getInventoryProductBySku,
   getAllProducts,
+  increseReservedQuantityByProductId,
 };

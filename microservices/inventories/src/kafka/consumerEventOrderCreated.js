@@ -1,5 +1,6 @@
 const { Kafka } = require("kafkajs");
 const { OrderEvent, EventType } = require("./order_events_pb");
+const { processEventOrderCreated } = require("../services/inventoriesService");
 
 const kafka = new Kafka({
   clientId: "inventories",
@@ -15,10 +16,8 @@ async function processEvent(eventBuffer) {
     const eventType = event.getEventType();
 
     if (eventType === EventType.ORDER_CREATED) {
-      const timestamp = event.getTimestamp();
-
       const orderCreated = event.getOrderCreated();
-      console.log(`ORDER_CREATED:`, {
+      const orderData = {
         event_id: event.getEventId(),
         order_id: event.getOrderId(),
         customer: {
@@ -32,7 +31,8 @@ async function processEvent(eventBuffer) {
           price: item.getPrice(),
           quantity: item.getQuantity(),
         })),
-      });
+      };
+      await processEventOrderCreated(orderData);
     }
   } catch (err) {
     console.error(`Error when processing event ${TOPIC}:`, err);

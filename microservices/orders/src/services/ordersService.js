@@ -23,7 +23,11 @@ async function validateItemsStock(items) {
       ) {
         throw new Error(`Product with SKU ${item.sku} not found in inventory`);
       }
-      if (product.Inventory.available_quantity < item.quantity) {
+      if (
+        product.Inventory.available_quantity -
+          product.Inventory.reserved_quantity <
+        item.quantity
+      ) {
         throw new Error(
           `Insufficient stock for SKU ${item.sku}: requested ${item.quantity}, available ${product.Inventory.available_quantity}`
         );
