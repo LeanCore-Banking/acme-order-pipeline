@@ -46,4 +46,8 @@ async function listenEventOrderConfirmed() {
 
 module.exports = {
   listenEventOrderConfirmed,
+  processEvent,
+  TOPIC,
+  kafka,
+  consumer,
 };

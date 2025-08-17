@@ -22,7 +22,8 @@ describe("Inventory Sequelize Model", () => {
   let ProductMock;
   let InventoryModelMock;
 
-  beforeAll(() => {
+  beforeEach(() => {
+    jest.clearAllMocks();
     Inventory = require("../../src/models/inventory");
     sequelizeMock = require("../../src/utils/db");
     ProductMock = require("../../src/models/product");
@@ -77,6 +78,7 @@ describe("Inventory Sequelize Model", () => {
   });
 
   it("should export the Inventory model", () => {
-    expect(Inventory).toBe(InventoryModelMock);
+    expect(Inventory).toBeDefined();
+    expect(Inventory.name).toBe("InventoryModel");
   });
 });

@@ -124,4 +124,8 @@ module.exports = {
   getOrdersByUserIdService,
   validateItemsStock,
   processEventOrder,
+  applyRandomPercent,
+  getPricing,
+  getRandomPaymentStatus,
+  getPayment,
 };

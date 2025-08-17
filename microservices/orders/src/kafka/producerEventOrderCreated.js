@@ -85,4 +85,7 @@ async function produceEventOrderCreated(orderData) {
 
 module.exports = {
   produceEventOrderCreated,
+  producer,
+  kafka,
+  TOPIC,
 };

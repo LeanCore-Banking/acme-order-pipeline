@@ -11,7 +11,8 @@ describe("Sequelize instance", () => {
   let originalEnv;
   let sequelizeInstance;
 
-  beforeAll(() => {
+  beforeEach(() => {
+    jest.clearAllMocks();
     originalEnv = { ...process.env };
 
     process.env.PG_DATABASE = "test_db";
@@ -23,7 +24,7 @@ describe("Sequelize instance", () => {
     sequelizeInstance = require("../../src/utils/db");
   });
 
-  afterAll(() => {
+  afterEach(() => {
     process.env = originalEnv;
   });
 

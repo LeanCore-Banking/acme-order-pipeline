@@ -48,4 +48,8 @@ async function listenEventOrderFailed() {
 
 module.exports = {
   listenEventOrderFailed,
+  processEvent,
+  TOPIC,
+  kafka,
+  consumer,
 };
