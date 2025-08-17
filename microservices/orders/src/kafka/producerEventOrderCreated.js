@@ -8,6 +8,10 @@ const {
   OrderItem,
 } = require("./order_events_pb");
 const { Timestamp } = require("google-protobuf/google/protobuf/timestamp_pb");
+const {
+  createOrderEventRepository,
+  getOrderEventByIdRepository,
+} = require("../repositories/ordersEventsRepository");
 
 const kafka = new Kafka({
   clientId: "orders",
@@ -16,6 +20,17 @@ const kafka = new Kafka({
 
 const producer = kafka.producer();
 const TOPIC = "event-order-created";
+
+async function createOrderEvent(orderData) {
+  await createOrderEventRepository(orderData);
+}
+
+async function validateOrderEvent(event_id, order_id) {
+  const orderEvent = await getOrderEventByIdRepository(event_id, order_id);
+  if (orderEvent && orderEvent.event_id && orderEvent.order_id) {
+    throw new Error(`Order Event whit same data already exists!`);
+  }
+}
 
 async function produceEventOrderCreated(orderData) {
   const orderCreated = new OrderCreated();
@@ -49,6 +64,14 @@ async function produceEventOrderCreated(orderData) {
   event.setTimestamp(ts);
 
   event.setOrderCreated(orderCreated);
+
+  await validateOrderEvent(event.getEventId(), orderData.order_id);
+  await createOrderEvent({
+    event_id: event.getEventId(),
+    order_id: orderData.order_id,
+    event_type: event.getEventType(),
+    timestamp: ts,
+  });
 
   const serialized = event.serializeBinary();
 
