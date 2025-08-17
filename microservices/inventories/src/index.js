@@ -4,6 +4,9 @@ const {
   getInventoryProductBySku,
   getAllInventoryProducts,
 } = require("./controllers/inventoriesController");
+const {
+  listenEventOrderCreated,
+} = require("./kafka/consumerEventOrderCreated");
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -17,6 +20,9 @@ sequelize
   .then(() => {
     console.log("PostgreSQL connection done");
     return sequelize.sync({ alter: true });
+  })
+  .then(() => {
+    listenEventOrderCreated();
   })
   .then(() => {
     app.listen(PORT, () =>

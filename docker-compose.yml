@@ -175,6 +175,10 @@ volumes:
     driver: local
   kafka_data:
     driver: local
+  orders:
+    driver: local
+  inventories:
+    driver: local
 
 networks:
   ecommerce_network:
