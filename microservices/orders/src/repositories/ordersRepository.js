@@ -13,8 +13,13 @@ async function getOrdersByUserIdRepository(userId) {
   return await Order.find({ "customer.user_id": userId }).exec();
 }
 
+async function updateOrderByIdRepository(orderId, status) {
+  return await Order.updateOne({ order_id: orderId }, { $set: { status } });
+}
+
 module.exports = {
   createOrderRepository,
   getOrderByIdRepository,
   getOrdersByUserIdRepository,
+  updateOrderByIdRepository,
 };

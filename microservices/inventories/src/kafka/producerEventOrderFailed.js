@@ -19,7 +19,7 @@ async function produceEventOrderFailed(
   const orderFailed = new OrderFailed();
   orderFailed.setOrderId(orderData.order_id);
   orderFailed.setReason(failure_reason);
-  orderFailed.setErrorMesagge(error_message);
+  orderFailed.setErrorMessage(error_message);
 
   const event = new OrderEvent();
   event.setEventId(v7());

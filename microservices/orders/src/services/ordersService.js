@@ -5,6 +5,7 @@ const {
   createOrderRepository,
   getOrderByIdRepository,
   getOrdersByUserIdRepository,
+  updateOrderByIdRepository,
 } = require("../repositories/ordersRepository");
 const { getProductBySku } = require("../repositories/inventoriesRepository");
 const {
@@ -110,9 +111,17 @@ async function getOrdersByUserIdService(userId) {
   return await getOrdersByUserIdRepository(userId);
 }
 
+async function processEventOrder(orderData, type) {
+  await updateOrderByIdRepository(
+    orderData.order_id,
+    type === "confirmed" ? "completed" : "failed"
+  );
+}
+
 module.exports = {
   createOrderService,
   getOrderByIdService,
   getOrdersByUserIdService,
   validateItemsStock,
+  processEventOrder,
 };

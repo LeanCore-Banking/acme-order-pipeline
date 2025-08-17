@@ -6,6 +6,10 @@ const {
   getOrderById,
   getOrdersByUserId,
 } = require("./controllers/ordersController");
+const { listenEventOrderFailed } = require("./kafka/consumerEventOrderFailed");
+const {
+  listenEventOrderConfirmed,
+} = require("./kafka/consumerEventOrderConfirmed");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,8 +23,13 @@ v1Router.get("/", (req, res) => res.send("Orders Service API is running"));
 
 app.use("/api/v1", v1Router);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Orders Service running on port ${PORT}`);
+connectDB()
+  .then(() => {
+    listenEventOrderFailed();
+    listenEventOrderConfirmed();
+  })
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Orders Service running on port ${PORT}`);
+    });
   });
-});
