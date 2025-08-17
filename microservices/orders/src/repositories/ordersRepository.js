@@ -9,12 +9,12 @@ async function getOrderByIdRepository(orderId) {
   return await Order.findOne({ order_id: orderId }).exec();
 }
 
-async function getAllOrdersRepository() {
-  return await Order.find({}).exec();
+async function getOrdersByUserIdRepository(userId) {
+  return await Order.find({ "customer.user_id": userId }).exec();
 }
 
 module.exports = {
   createOrderRepository,
   getOrderByIdRepository,
-  getAllOrdersRepository,
+  getOrdersByUserIdRepository,
 };

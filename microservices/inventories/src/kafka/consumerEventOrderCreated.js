@@ -26,7 +26,7 @@ async function processEvent(eventBuffer) {
           email: orderCreated.getCustomer().getEmail(),
         },
         items: orderCreated.getItemsList().map((item) => ({
-          producto_id: item.getProductId(),
+          product_id: item.getProductId(),
           sku: item.getSku(),
           name: item.getName(),
           price: item.getPrice(),

@@ -1,19 +1,14 @@
 const {
   createOrderService,
   getOrderByIdService,
-  getAllOrdersService,
+  getOrdersByUserIdService,
 } = require("../services/ordersService");
 
 async function createOrder(req, res) {
   const orderData = req.body;
 
   try {
-    if (
-      !orderData.order_id ||
-      !orderData.pricing ||
-      !orderData.items ||
-      !orderData.customer
-    ) {
+    if (!orderData.items || !orderData.customer) {
       throw new Error("Missing required data");
     }
     const result = await createOrderService(orderData);
@@ -27,10 +22,9 @@ async function createOrder(req, res) {
 }
 
 async function getOrderById(req, res) {
-  const params = req.params;
-  const { orderId } = params;
-
   try {
+    const params = req.params;
+    const { orderId } = params;
     if (!orderId) {
       throw new Error("Missing orderId");
     }
@@ -44,9 +38,11 @@ async function getOrderById(req, res) {
   }
 }
 
-async function getAllOrders(req, res) {
+async function getOrdersByUserId(req, res) {
   try {
-    const result = await getAllOrdersService();
+    const params = req.params;
+    const { userId } = params;
+    const result = await getOrdersByUserIdService(userId);
     res.status(200).json({
       message: "Orders found",
       order: result,
@@ -56,4 +52,4 @@ async function getAllOrders(req, res) {
   }
 }
 
-module.exports = { createOrder, getOrderById, getAllOrders };
+module.exports = { createOrder, getOrderById, getOrdersByUserId };

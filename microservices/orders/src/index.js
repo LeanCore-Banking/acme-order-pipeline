@@ -4,17 +4,20 @@ const connectDB = require("./utils/db");
 const {
   createOrder,
   getOrderById,
-  getAllOrders,
+  getOrdersByUserId,
 } = require("./controllers/ordersController");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 app.use(express.json());
+const v1Router = express.Router();
 
-app.post("/orders", createOrder);
-app.get("/orders", getAllOrders);
-app.get("/orders/:orderId", getOrderById);
-app.get("/", (req, res) => res.send("Orders Service API is running"));
+v1Router.post("/orders", createOrder);
+v1Router.get("/orders/:orderId", getOrderById);
+v1Router.get("/users/:userId/orders", getOrdersByUserId);
+v1Router.get("/", (req, res) => res.send("Orders Service API is running"));
+
+app.use("/api/v1", v1Router);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
