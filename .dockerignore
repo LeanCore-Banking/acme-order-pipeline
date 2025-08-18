@@ -1,0 +1,33 @@
+# Ignorar carpetas de dependencias instaladas localmente
+node_modules
+**/node_modules
+
+# Ignorar archivos de logs
+npm-debug.log
+yarn-error.log
+*.log
+
+# Ignorar archivos de entorno (variables sensibles)
+.env
+.env.*
+
+# Ignorar carpetas de test coverage
+coverage
+coverage/*
+
+# Ignorar archivos temporales y de sistema
+.DS_Store
+*.swp
+*.tmp
+
+# Ignorar control de versiones y configuración del editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Ignorar directorios de compilación
+dist
+build
+
+# Ignorar cualquier otro archivo o carpeta que no necesites subir al build
