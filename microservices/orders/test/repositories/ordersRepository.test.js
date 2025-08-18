@@ -267,19 +267,33 @@ describe("Orders Repository", () => {
       const orderId = "ORD-2024-123456";
       const newStatus = "completed";
 
+      const mockExistingOrder = {
+        order_id: orderId,
+        status: "pending",
+        customer: { user_id: "user123" },
+      };
+
       const mockUpdateResult = {
         modifiedCount: 1,
         matchedCount: 1,
         upsertedCount: 0,
       };
 
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockExistingOrder),
+      };
+
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
       Order.updateOne = jest.fn().mockResolvedValue(mockUpdateResult);
 
       const result = await updateOrderByIdRepository(orderId, newStatus);
 
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: orderId });
+      expect(mockQuery.exec).toHaveBeenCalled();
       expect(Order.updateOne).toHaveBeenCalledWith(
         { order_id: orderId },
-        { $set: { status: newStatus } }
+        { $set: { status: newStatus, updated_at: expect.any(String) } }
       );
       expect(result).toEqual(mockUpdateResult);
     });
@@ -288,21 +302,19 @@ describe("Orders Repository", () => {
       const orderId = "ORD-2024-123456";
       const newStatus = "completed";
 
-      const mockUpdateResult = {
-        modifiedCount: 0,
-        matchedCount: 0,
-        upsertedCount: 0,
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(null),
       };
 
-      Order.updateOne = jest.fn().mockResolvedValue(mockUpdateResult);
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
 
       const result = await updateOrderByIdRepository(orderId, newStatus);
 
-      expect(Order.updateOne).toHaveBeenCalledWith(
-        { order_id: orderId },
-        { $set: { status: newStatus } }
-      );
-      expect(result).toEqual(mockUpdateResult);
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: orderId });
+      expect(mockQuery.exec).toHaveBeenCalled();
+      expect(Order.updateOne).not.toHaveBeenCalled();
+      expect(result).toEqual({ modifiedCount: 0, matchedCount: 0 });
     });
 
     test("should handle database errors", async () => {
@@ -310,42 +322,50 @@ describe("Orders Repository", () => {
       const newStatus = "completed";
       const dbError = new Error("Database connection failed");
 
-      Order.updateOne = jest.fn().mockRejectedValue(dbError);
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValue(dbError),
+      };
+
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
 
       await expect(
         updateOrderByIdRepository(orderId, newStatus)
       ).rejects.toThrow("Database connection failed");
 
-      expect(Order.updateOne).toHaveBeenCalledWith(
-        { order_id: orderId },
-        { $set: { status: newStatus } }
-      );
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: orderId });
+      expect(mockQuery.exec).toHaveBeenCalled();
+      expect(Order.updateOne).not.toHaveBeenCalled();
     });
 
     test("should handle empty orderId", async () => {
       const orderId = "";
       const newStatus = "completed";
 
-      const mockUpdateResult = {
-        modifiedCount: 0,
-        matchedCount: 0,
-        upsertedCount: 0,
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(null),
       };
 
-      Order.updateOne = jest.fn().mockResolvedValue(mockUpdateResult);
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
 
       const result = await updateOrderByIdRepository(orderId, newStatus);
 
-      expect(Order.updateOne).toHaveBeenCalledWith(
-        { order_id: "" },
-        { $set: { status: newStatus } }
-      );
-      expect(result).toEqual(mockUpdateResult);
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: "" });
+      expect(mockQuery.exec).toHaveBeenCalled();
+      expect(Order.updateOne).not.toHaveBeenCalled();
+      expect(result).toEqual({ modifiedCount: 0, matchedCount: 0 });
     });
 
     test("should handle undefined status", async () => {
       const orderId = "ORD-2024-123456";
       const newStatus = undefined;
+
+      const mockExistingOrder = {
+        order_id: orderId,
+        status: "pending",
+        customer: { user_id: "user123" },
+      };
 
       const mockUpdateResult = {
         modifiedCount: 1,
@@ -353,13 +373,21 @@ describe("Orders Repository", () => {
         upsertedCount: 0,
       };
 
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockExistingOrder),
+      };
+
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
       Order.updateOne = jest.fn().mockResolvedValue(mockUpdateResult);
 
       const result = await updateOrderByIdRepository(orderId, newStatus);
 
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: orderId });
+      expect(mockQuery.exec).toHaveBeenCalled();
       expect(Order.updateOne).toHaveBeenCalledWith(
         { order_id: orderId },
-        { $set: { status: undefined } }
+        { $set: { status: undefined, updated_at: expect.any(String) } }
       );
       expect(result).toEqual(mockUpdateResult);
     });
@@ -368,19 +396,33 @@ describe("Orders Repository", () => {
       const orderId = "ORD-2024-123456";
       const newStatus = null;
 
+      const mockExistingOrder = {
+        order_id: orderId,
+        status: "pending",
+        customer: { user_id: "user123" },
+      };
+
       const mockUpdateResult = {
         modifiedCount: 1,
         matchedCount: 1,
         upsertedCount: 0,
       };
 
+      const mockQuery = {
+        findOne: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockExistingOrder),
+      };
+
+      Order.findOne = jest.fn().mockReturnValue(mockQuery);
       Order.updateOne = jest.fn().mockResolvedValue(mockUpdateResult);
 
       const result = await updateOrderByIdRepository(orderId, newStatus);
 
+      expect(Order.findOne).toHaveBeenCalledWith({ order_id: orderId });
+      expect(mockQuery.exec).toHaveBeenCalled();
       expect(Order.updateOne).toHaveBeenCalledWith(
         { order_id: orderId },
-        { $set: { status: null } }
+        { $set: { status: null, updated_at: expect.any(String) } }
       );
       expect(result).toEqual(mockUpdateResult);
     });

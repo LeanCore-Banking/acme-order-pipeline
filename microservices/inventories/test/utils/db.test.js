@@ -1,19 +1,15 @@
 const { Sequelize } = require("sequelize");
 
-// Mock de dotenv
 jest.mock("dotenv", () => ({
   config: jest.fn(),
 }));
 
-// Mock de Sequelize
 jest.mock("sequelize");
 
 describe("Database Utility", () => {
   beforeEach(() => {
-    // Limpiar todos los mocks antes de cada prueba
     jest.clearAllMocks();
 
-    // Configurar variables de entorno para las pruebas
     process.env.PG_DATABASE = "test_db";
     process.env.PG_USER = "test_user";
     process.env.PG_PASSWORD = "test_password";
@@ -21,7 +17,6 @@ describe("Database Utility", () => {
   });
 
   afterEach(() => {
-    // Restaurar variables de entorno
     delete process.env.PG_DATABASE;
     delete process.env.PG_USER;
     delete process.env.PG_PASSWORD;
@@ -94,22 +89,18 @@ describe("Database Utility", () => {
 
   describe("Configuration Structure", () => {
     test("should have database configuration properties", () => {
-      // Verificar que se pueden configurar las propiedades de la base de datos
       expect(true).toBe(true);
     });
 
     test("should have host configuration", () => {
-      // Verificar que se puede configurar el host
       expect(true).toBe(true);
     });
 
     test("should have dialect configuration", () => {
-      // Verificar que se puede configurar el dialecto
       expect(true).toBe(true);
     });
 
     test("should have logging configuration", () => {
-      // Verificar que se puede configurar el logging
       expect(true).toBe(true);
     });
   });
@@ -134,17 +125,14 @@ describe("Database Utility", () => {
 
   describe("Sequelize Configuration", () => {
     test("should configure postgres dialect", () => {
-      // Verificar que se configura el dialecto postgres
       expect(true).toBe(true);
     });
 
     test("should configure logging disabled", () => {
-      // Verificar que se deshabilita el logging
       expect(true).toBe(true);
     });
 
     test("should configure custom host", () => {
-      // Verificar que se configura el host personalizado
       expect(true).toBe(true);
     });
   });

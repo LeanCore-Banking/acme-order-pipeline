@@ -5,7 +5,6 @@ jest.mock("../../src/utils/db");
 
 describe("Product Model", () => {
   beforeEach(() => {
-    // Limpiar todos los mocks antes de cada prueba
     jest.clearAllMocks();
   });
 
@@ -43,12 +42,10 @@ describe("Product Model", () => {
 
   describe("Model Configuration", () => {
     test("should have tableName configuration", () => {
-      // Verificar que el modelo se configura con tableName
       expect(true).toBe(true);
     });
 
     test("should have timestamps configuration", () => {
-      // Verificar que el modelo se configura con timestamps
       expect(true).toBe(true);
     });
   });
@@ -81,24 +78,20 @@ describe("Product Model", () => {
 
   describe("Validation Rules", () => {
     test("should have min validation for price", () => {
-      // Verificar que se define validación mínima para precio
       expect(true).toBe(true);
     });
   });
 
   describe("Constraints", () => {
     test("should have primary key constraint for id", () => {
-      // Verificar que id es primary key
       expect(true).toBe(true);
     });
 
     test("should have unique constraint for sku", () => {
-      // Verificar que sku es único
       expect(true).toBe(true);
     });
 
     test("should have not null constraints for required fields", () => {
-      // Verificar que los campos requeridos no pueden ser null
       expect(true).toBe(true);
     });
   });
@@ -109,7 +102,6 @@ describe("Product Model", () => {
     });
 
     test("should have default value for timestamps", () => {
-      // Verificar que se usan valores por defecto para timestamps
       expect(true).toBe(true);
     });
   });

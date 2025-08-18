@@ -8,9 +8,11 @@ const {
   getPricing,
   getRandomPaymentStatus,
   getPayment,
+  validatePayment,
 } = require("../../src/services/ordersService");
 
 jest.mock("../../src/kafka/producerEventOrderCreated");
+jest.mock("../../src/kafka/producerEventOrderFailed");
 jest.mock("../../src/repositories/ordersRepository");
 jest.mock("../../src/repositories/inventoriesRepository");
 jest.mock("../../src/utils/generateRandoms");
@@ -18,6 +20,9 @@ jest.mock("../../src/utils/generateRandoms");
 const {
   produceEventOrderCreated,
 } = require("../../src/kafka/producerEventOrderCreated");
+const {
+  produceEventOrderFailed,
+} = require("../../src/kafka/producerEventOrderFailed");
 const {
   createOrderRepository,
   getOrderByIdRepository,
@@ -298,6 +303,41 @@ describe("Orders Service", () => {
     });
   });
 
+  describe("validatePayment", () => {
+    test("should return true for completed payment", () => {
+      const payment = {
+        status: "completed",
+        transaction_id: "txn_123456",
+      };
+
+      const result = validatePayment(payment);
+
+      expect(result).toBe(true);
+    });
+
+    test("should return false for failed payment", () => {
+      const payment = {
+        status: "failed",
+        transaction_id: "txn_123456",
+      };
+
+      const result = validatePayment(payment);
+
+      expect(result).toBe(false);
+    });
+
+    test("should return false for pending payment", () => {
+      const payment = {
+        status: "pending",
+        transaction_id: "txn_123456",
+      };
+
+      const result = validatePayment(payment);
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe("createOrderService", () => {
     test("should create order successfully", async () => {
       const orderData = {
@@ -371,6 +411,52 @@ describe("Orders Service", () => {
           "Insufficient stock for SKU SKU123: requested 10, available 5"
         );
       }
+    });
+
+    test("should handle payment failure", async () => {
+      const orderData = {
+        items: [{ sku: "SKU123", quantity: 2 }],
+        customer: { user_id: "user123", email: "test@example.com" },
+      };
+
+      const mockProduct = {
+        id: "product123",
+        name: "Test Product",
+        price: 75.0,
+        Inventory: { available_quantity: 10, reserved_quantity: 2 },
+      };
+
+      const mockOrderId = "ORD-2024-123456";
+      const mockTransactionId = "txn_123456";
+
+      getProductBySku.mockResolvedValue(mockProduct);
+      buildOrderId.mockReturnValue(mockOrderId);
+      buildTransactionId.mockReturnValue(mockTransactionId);
+
+      // Mock Math.random to return a value >= 0.7 to simulate payment failure
+      jest.spyOn(Math, "random").mockReturnValue(0.8);
+
+      produceEventOrderFailed.mockResolvedValue();
+
+      const result = await createOrderService(orderData);
+
+      expect(produceEventOrderFailed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order_id: mockOrderId,
+          status: "pending",
+          payment: {
+            status: "failed",
+            transaction_id: mockTransactionId,
+          },
+        }),
+        "Payment failed"
+      );
+      expect(result).toEqual({
+        order_id: mockOrderId,
+        status: "failed",
+        message: "Order failed on payment processing",
+        created_at: expect.any(String),
+      });
     });
   });
 

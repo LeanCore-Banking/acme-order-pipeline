@@ -1,4 +1,3 @@
-// Mock google-protobuf
 jest.mock("google-protobuf", () => ({
   Message: jest.fn().mockImplementation(() => ({
     initialize: jest.fn(),
@@ -9,7 +8,6 @@ jest.mock("google-protobuf", () => ({
   })),
 }));
 
-// Mock google-protobuf timestamp
 jest.mock("google-protobuf/google/protobuf/timestamp_pb", () => ({
   Timestamp: jest.fn().mockImplementation(() => ({
     getSeconds: jest.fn().mockReturnValue(0),

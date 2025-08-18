@@ -4,12 +4,10 @@ const {
   processEventOrderCreated,
 } = require("../../src/services/inventoriesService");
 
-// Mock de las dependencias de Kafka
 jest.mock("../../src/kafka/producerEventOrderConfirmed");
 jest.mock("../../src/kafka/producerEventOrderFailed");
 jest.mock("../../src/kafka/order_events_pb");
 
-// Mock del repositorio
 jest.mock("../../src/repositories/inventoriesRepository");
 
 const {
@@ -27,10 +25,8 @@ const { FailureReason } = require("../../src/kafka/order_events_pb");
 
 describe("Inventories Service", () => {
   beforeEach(() => {
-    // Limpiar todos los mocks antes de cada prueba
     jest.clearAllMocks();
 
-    // Mock de FailureReason
     FailureReason.INVALID_PRODUCT = 1;
     FailureReason.INSUFFICIENT_INVENTORY = 2;
   });

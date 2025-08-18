@@ -70,7 +70,7 @@ async function produceEventOrderCreated(orderData) {
     event_id: event.getEventId(),
     order_id: orderData.order_id,
     event_type: event.getEventType(),
-    timestamp: ts,
+    timestamp: jsDate.toISOString(),
   });
 
   const serialized = event.serializeBinary();

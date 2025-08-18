@@ -2,7 +2,6 @@ const {
   listenEventOrderCreated,
 } = require("../../src/kafka/consumerEventOrderCreated");
 
-// Mock KafkaJS
 jest.mock("kafkajs", () => ({
   Kafka: jest.fn().mockImplementation(() => ({
     consumer: jest.fn().mockReturnValue({
@@ -13,7 +12,6 @@ jest.mock("kafkajs", () => ({
   })),
 }));
 
-// Mock protobuf
 jest.mock("../../src/kafka/order_events_pb", () => ({
   OrderEvent: {
     deserializeBinary: jest.fn(),
@@ -23,7 +21,6 @@ jest.mock("../../src/kafka/order_events_pb", () => ({
   },
 }));
 
-// Mock service
 jest.mock("../../src/services/inventoriesService", () => ({
   processEventOrderCreated: jest.fn(),
 }));

@@ -2,12 +2,10 @@ const {
   produceEventOrderFailed,
 } = require("../../src/kafka/producerEventOrderFailed");
 
-// Mock UUID
 jest.mock("uuid", () => ({
   v7: jest.fn().mockReturnValue("mock-uuid-123"),
 }));
 
-// Mock KafkaJS
 jest.mock("kafkajs", () => ({
   Kafka: jest.fn().mockImplementation(() => ({
     producer: jest.fn().mockReturnValue({
@@ -18,7 +16,6 @@ jest.mock("kafkajs", () => ({
   })),
 }));
 
-// Mock protobuf
 jest.mock("../../src/kafka/order_events_pb", () => ({
   OrderEvent: jest.fn().mockImplementation(() => ({
     setEventId: jest.fn().mockReturnThis(),
@@ -38,7 +35,6 @@ jest.mock("../../src/kafka/order_events_pb", () => ({
   },
 }));
 
-// Mock google-protobuf timestamp
 jest.mock("google-protobuf/google/protobuf/timestamp_pb", () => ({
   Timestamp: jest.fn().mockImplementation(() => ({
     setSeconds: jest.fn().mockReturnThis(),

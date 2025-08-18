@@ -3,7 +3,6 @@ const {
   getAllInventoryProducts,
 } = require("../../src/controllers/inventoriesController");
 
-// Mock del servicio de inventarios
 jest.mock("../../src/services/inventoriesService");
 
 const {
@@ -16,10 +15,8 @@ describe("Inventories Controller", () => {
   let mockRes;
 
   beforeEach(() => {
-    // Limpiar todos los mocks antes de cada prueba
     jest.clearAllMocks();
 
-    // Configurar objetos mock de request y response
     mockReq = {
       body: {},
       params: {},

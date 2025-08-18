@@ -14,7 +14,19 @@ async function getOrdersByUserIdRepository(userId) {
 }
 
 async function updateOrderByIdRepository(orderId, status) {
-  return await Order.updateOne({ order_id: orderId }, { $set: { status } });
+  try {
+    const existingOrder = await Order.findOne({ order_id: orderId }).exec();
+    if (!existingOrder) {
+      return { modifiedCount: 0, matchedCount: 0 };
+    }
+    const result = await Order.updateOne(
+      { order_id: orderId },
+      { $set: { status, updated_at: new Date().toISOString() } }
+    );
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
 
 module.exports = {

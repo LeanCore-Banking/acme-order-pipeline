@@ -12,6 +12,9 @@ const {
   buildOrderId,
   buildTransactionId,
 } = require("../utils/generateRandoms");
+const {
+  produceEventOrderFailed,
+} = require("../kafka/producerEventOrderFailed");
 
 async function validateItemsStock(items) {
   const results = await Promise.all(
@@ -79,6 +82,10 @@ function getPayment() {
   };
 }
 
+function validatePayment(payment) {
+  return payment.status === "completed";
+}
+
 async function createOrderService(orderData) {
   const items = await validateItemsStock(orderData.items);
   const pricing = getPricing(items);
@@ -92,6 +99,16 @@ async function createOrderService(orderData) {
     payment,
     created_at: new Date().toISOString(),
   };
+  const continueProcess = validatePayment(payment);
+  if (!continueProcess) {
+    await produceEventOrderFailed(order, "Payment failed");
+    return {
+      order_id: order.order_id,
+      status: "failed",
+      message: "Order failed on payment processing",
+      created_at: order.created_at,
+    };
+  }
   await produceEventOrderCreated(order);
   const savedOrder = await createOrderRepository(order);
   return {
@@ -128,4 +145,5 @@ module.exports = {
   getPricing,
   getRandomPaymentStatus,
   getPayment,
+  validatePayment,
 };

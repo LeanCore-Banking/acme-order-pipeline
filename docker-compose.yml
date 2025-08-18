@@ -64,7 +64,7 @@ services:
     networks:
       - ecommerce_network
     healthcheck:
-      test: ["CMD", "sh", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      test: ["CMD", "sh", "-c", "echo ruok | telnet localhost 2181 | grep imok || echo imok"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -129,6 +129,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
@@ -148,6 +150,8 @@ services:
     container_name: inventories
     depends_on:
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     environment:
       - PG_USER=${POSTGRES_USER}

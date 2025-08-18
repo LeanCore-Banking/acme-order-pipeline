@@ -8,7 +8,7 @@ const kafka = new Kafka({
   brokers: ["kafka:29092"],
 });
 
-const consumer = kafka.consumer({ groupId: "orders-group" });
+const consumer = kafka.consumer({ groupId: "orders-confirmed-group" });
 const TOPIC = "event-order-confirmed";
 
 async function processEvent(eventBuffer) {

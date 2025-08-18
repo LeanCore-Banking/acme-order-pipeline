@@ -34,12 +34,11 @@ async function produceEventOrderConfirmed(orderData) {
   const summary = getSummary(orderData.items);
   const orderConfirmed = new OrderConfirmed();
   orderConfirmed.setOrderId(orderData.order_id);
-  // orderConfirmed.setSummary(JSON.stringify(summary));
 
   const event = new OrderEvent();
   event.setEventId(v7());
   event.setOrderId(orderData.order_id);
-  event.setEventType(EventType.ORDER_FAILED);
+  event.setEventType(EventType.ORDER_CONFIRMED);
 
   const ts = new Timestamp();
   const jsDate = new Date();
