@@ -1,4 +1,65 @@
 services:
+  # === APLICACIÓN ===
+  api:
+    build: .
+    container_name: ecommerce_api
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_DSN: postgresql+psycopg://postgres:postgres123@postgres:5432/ecommerce_inventory
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/?authSource=admin
+      MONGO_DB: ecommerce_orders
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC_ORDERS_CREATED: orders.created
+      TAX_RATE: 0.08
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - ecommerce_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: ecommerce_worker
+    entrypoint: ["/worker-entrypoint.sh"]
+    environment:
+      POSTGRES_DSN: postgresql+psycopg://postgres:postgres123@postgres:5432/ecommerce_inventory
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/?authSource=admin
+      MONGO_DB: ecommerce_orders
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC_ORDERS_CREATED: orders.created
+      KAFKA_GROUP_ID: orders-worker
+      KAFKA_AUTO_OFFSET_RESET: earliest
+      KAFKA_ENABLE_AUTO_COMMIT: "true"
+      TAX_RATE: 0.08
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - ecommerce_network
+    restart: unless-stopped
+
+  # === INFRAESTRUCTURA ===
   postgres:
     image: postgres:16
     container_name: ecommerce_postgres
@@ -6,7 +67,6 @@ services:
       POSTGRES_DB: ecommerce_inventory
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
-      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
@@ -19,6 +79,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   mongodb:
     image: mongo:7.0
     container_name: ecommerce_mongodb
@@ -27,7 +88,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin123
       MONGO_INITDB_DATABASE: ecommerce_orders
     ports:
-      - "27017:27017"
+      - "57017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./init-scripts/mongodb:/docker-entrypoint-initdb.d
@@ -38,7 +99,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-  # Zookeeper (required for Kafka)
+
+  # Zookeeper simplificado
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ecommerce_zookeeper
@@ -47,9 +109,6 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_logs:/var/lib/zookeeper/log
     networks:
       - ecommerce_network
     healthcheck:
@@ -57,7 +116,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  # Kafka Broker
+
+  # Kafka simplificado
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ecommerce_kafka
@@ -67,52 +127,42 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_NUM_PARTITIONS: 3
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
     ports:
-      - "9092:9092"
-      - "9101:9101"
-    volumes:
-      - kafka_data:/var/lib/kafka/data
+      - "9092:29092"
     networks:
       - ecommerce_network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:29092"]
       interval: 10s
       timeout: 10s
       retries: 5
-  # Schema Registry
-  schema-registry:
-    image: confluentinc/cp-schema-registry:7.5.0
-    hostname: schema-registry
-    container_name: schema-registry
+
+  # Inicializar topics de Kafka
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
     depends_on:
-      - kafka
-    ports:
-      - "8081:8081"
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      kafka:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+    command: >
+      bash -c "
+        echo 'Creando topics de Kafka...'
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic orders.created --partitions 3 --replication-factor 1
+        echo 'Topics creados exitosamente!'
+        kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    restart: "no"
   
 volumes:
   postgres_data:
-    driver: local
   mongodb_data:
-    driver: local
-  zookeeper_data:
-    driver: local
-  zookeeper_logs:
-    driver: local
-  kafka_data:
-    driver: local
 
 networks:
   ecommerce_network:

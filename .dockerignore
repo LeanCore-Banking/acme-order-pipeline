@@ -1,0 +1,67 @@
+# ── Python
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.cache/
+.mypy_cache/
+.hypothesis/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ── Entornos virtuales
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# ── IDEs/editores (mejor en global, pero ok aquí)
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── SO
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── Docker (NO ignores por defecto; deja versionados tus archivos)
+# docker-compose.override.yml  # <- si quieres ignorar solo overrides locales
+
+# ── Documentación (NO ignores README ni docs fuente)
+# docs/_build/                 # <- solo artefactos de build si usas Sphinx/MkDocs
+
+# ── Dev files (mejor versionarlos)
+# .editorconfig
+# .pre-commit-config.yaml
+
+# ── Build artifacts
+dist/
+build/
+*.egg-info/
+
+# ── Logs
+logs/
+*.log
+
+__pycache__/
+*.py[cod]
