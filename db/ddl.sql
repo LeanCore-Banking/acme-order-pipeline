@@ -20,9 +20,22 @@ CREATE TABLE inventory (
     UNIQUE(product_id)
 );
 
+-- Tabla de idempotencia
+CREATE TABLE idempotency_keys (
+    key VARCHAR(200) PRIMARY KEY,
+    order_id VARCHAR(100) NOT NULL,
+    request_hash VARCHAR(128) NOT NULL,
+    response_status INTEGER NOT NULL,
+    response_body TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
 -- Índices
 CREATE INDEX idx_products_sku ON products(sku);
 CREATE INDEX idx_inventory_product_id ON inventory(product_id);
+CREATE INDEX idx_idempotency_order_id ON idempotency_keys(order_id);
+CREATE INDEX idx_idempotency_created_at ON idempotency_keys(created_at);
 
 -- Datos de ejemplo
 INSERT INTO products (sku, name, price) VALUES

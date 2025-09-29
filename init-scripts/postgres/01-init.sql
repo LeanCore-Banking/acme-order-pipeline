@@ -23,6 +23,17 @@ CREATE TABLE IF NOT EXISTS inventory (
     UNIQUE(product_id)
 );
 
+-- Tabla de idempotencia para evitar procesamiento duplicado de órdenes
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+    key VARCHAR(200) PRIMARY KEY,
+    order_id VARCHAR(100) NOT NULL,
+    request_hash VARCHAR(128) NOT NULL,
+    response_status INTEGER NOT NULL,
+    response_body TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
 -- Función para actualizar timestamp automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -51,11 +62,21 @@ CREATE TRIGGER update_inventory_timestamp
     BEFORE UPDATE ON inventory 
     FOR EACH ROW EXECUTE FUNCTION update_inventory_timestamp();
 
+-- Trigger para actualizar updated_at en idempotency_keys
+CREATE TRIGGER update_idempotency_updated_at 
+    BEFORE UPDATE ON idempotency_keys 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_product_sku ON product(sku);
 CREATE INDEX IF NOT EXISTS idx_product_name ON product USING gin(to_tsvector('english', name));
 CREATE INDEX IF NOT EXISTS idx_inventory_product_id ON inventory(product_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_available ON inventory(available_quantity) WHERE available_quantity > 0;
+
+-- Índices para tabla de idempotencia
+CREATE INDEX IF NOT EXISTS idx_idempotency_order_id ON idempotency_keys(order_id);
+CREATE INDEX IF NOT EXISTS idx_idempotency_created_at ON idempotency_keys(created_at);
+CREATE INDEX IF NOT EXISTS idx_idempotency_hash ON idempotency_keys(request_hash);
 
 -- Insertar datos de ejemplo
 INSERT INTO product (sku, name, price) VALUES
