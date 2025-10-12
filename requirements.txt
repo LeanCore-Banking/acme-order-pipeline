@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic[email]
+psycopg2-binary
+pymongo
+kafka-python
+protobuf
+python-dotenv
+

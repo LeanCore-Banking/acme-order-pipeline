@@ -1,0 +1,229 @@
+{
+	"info": {
+		"_postman_id": "5be04a2d-5b40-4651-ae26-dc4211e4147b",
+		"name": "ACME Endpoints",
+		"description": "Colección completa para probar la API del proyecto acme-order-pipeline (Python + FastAPI + Kafka + Postgres + MongoDB).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29195723",
+		"_collection_link": "https://bcc999-6688.postman.co/workspace/2a1903f5-4392-4e40-9c05-648c4f835ddb/collection/29195723-5be04a2d-5b40-4651-ae26-dc4211e4147b?action=share&source=collection_link&creator=29195723"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/health",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener todos los productos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/products",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar producto por SKU",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/products?sku=LAPTOP001",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"products"
+					],
+					"query": [
+						{
+							"key": "sku",
+							"value": "LAPTOP001"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ver inventario de producto",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/products/LAPTOP001/inventory",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"products",
+						"LAPTOP001",
+						"inventory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear nueva orden (OK)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"customer\": {\"user_id\": \"user_12345\", \"email\": \"customer@example.com\"},\n  \"items\": [\n    {\"sku\": \"LAPTOP001\", \"quantity\": 1},\n    {\"sku\": \"MOUSE001\", \"quantity\": 2}\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/v1/orders/",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear orden con inventario insuficiente (Error 400)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"customer\": {\"user_id\": \"user_12345\", \"email\": \"customer@example.com\"},\n  \"items\": [\n    {\"sku\": \"LAPTOP001\", \"quantity\": 100}\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/v1/orders/",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear orden con SKU inválido (Error 404)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"customer\": {\"user_id\": \"user_99999\", \"email\": \"invalid@example.com\"},\n  \"items\": [\n    {\"sku\": \"INVALID001\", \"quantity\": 1}\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/v1/orders/",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar estado de una orden",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/orders/ORD-20251012-xxxxxx",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"ORD-20251012-xxxxxx"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener órdenes de un usuario",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/v1/users/user_12345/orders",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"user_12345",
+						"orders"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
