@@ -98,6 +98,4 @@ acme-order-pipeline/
 **Ramses Hidalgo**
 
 Ingeniero de Sistemas – Backend Developer
-
-```
 ```
