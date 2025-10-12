@@ -5,7 +5,6 @@ from app.models.inventory_model import Inventory
 
 router = APIRouter(prefix="/api/v1/products", tags=["Products"])
 
-# ✅ Obtener todos los productos o buscar por SKU
 @router.get("/", response_model=list[Product])
 def get_products(sku: str | None = Query(None)):
     conn = get_postgres_connection()
@@ -39,7 +38,6 @@ def get_products(sku: str | None = Query(None)):
         conn.close()
 
 
-# ✅ Consultar inventario por SKU
 @router.get("/{sku}/inventory", response_model=Inventory)
 def get_inventory(sku: str):
     conn = get_postgres_connection()

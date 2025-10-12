@@ -5,9 +5,9 @@ def get_mongo_connection():
     try:
         client = MongoClient(settings.MONGO_URL)
         db = client["ecommerce_orders"]
-        print("✅ MongoDB conectado correctamente")
+        print("MongoDB conectado correctamente")
         return db
     except Exception as e:
-        print("❌ Error conectando a MongoDB:", e)
+        print("Error conectando a MongoDB:", e)
         return None
 
