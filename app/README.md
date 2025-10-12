@@ -18,7 +18,6 @@ Simula el flujo de una tienda en línea: creación de orden → validación de i
 
 Para iniciar todos los servicios en modo *detached* (segundo plano):
 
-```bash
 sudo docker compose up -d --build
 ````
 
