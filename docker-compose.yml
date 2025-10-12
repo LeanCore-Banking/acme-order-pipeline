@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   postgres:
     image: postgres:16
@@ -19,6 +21,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   mongodb:
     image: mongo:7.0
     container_name: ecommerce_mongodb
@@ -38,7 +41,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-  # Zookeeper (required for Kafka)
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ecommerce_zookeeper
@@ -53,11 +56,11 @@ services:
     networks:
       - ecommerce_network
     healthcheck:
-      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      test: ["CMD", "bash", "-c", "echo ruok | timeout 3 nc localhost 2181 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-  # Kafka Broker
+
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ecommerce_kafka
@@ -88,31 +91,66 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-  # Schema Registry
+
   schema-registry:
     image: confluentinc/cp-schema-registry:7.5.0
     hostname: schema-registry
-    container_name: schema-registry
+    container_name: ecommerce_schema_registry
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-  
+    networks:
+      - ecommerce_network
+
+  api:
+    build: .
+    container_name: ecommerce_api
+    environment:
+      - POSTGRES_URL=postgresql://postgres:postgres123@postgres:5432/ecommerce_inventory
+      - MONGO_URL=mongodb://admin:admin123@mongodb:27017
+      - KAFKA_HOST=kafka:29092   # ✅ conexión interna correcta
+    ports:
+      - "8080:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  consumer:
+    build: .
+    container_name: ecommerce_consumer
+    command: ["python", "-m", "app.kafka.consumer"]
+    environment:
+      - POSTGRES_URL=postgresql://postgres:postgres123@postgres:5432/ecommerce_inventory
+      - MONGO_URL=mongodb://admin:admin123@mongodb:27017
+      - KAFKA_HOST=kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
 volumes:
   postgres_data:
-    driver: local
   mongodb_data:
-    driver: local
   zookeeper_data:
-    driver: local
   zookeeper_logs:
-    driver: local
   kafka_data:
-    driver: local
 
 networks:
   ecommerce_network:
