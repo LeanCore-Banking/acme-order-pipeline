@@ -1,85 +1,172 @@
-# Descripción
 
-Vas a construir un Sistema Básico de Procesamiento de Órdenes que maneje el flujo desde la creación hasta la confirmación.
 
-Flujo: Validación → Kafka → Pago → Confirmación
+# ACME Order Pipeline
+## Estructura del proyecto
 
-## Contexto del Negocio
-Una tienda online necesita procesar órdenes simples. Cada orden debe:
-
-- Validar disponibilidad de inventario
-- Procesar el pago de forma asíncrona
-- Actualizar el inventario
-- Confirmar la orden
-
-## Flujo del Sistema
-1. API REST recibe la orden
-2. Validación inicial de datos e inventario
-3. Publicar evento a Kafka para procesamiento asíncrono
-4. Consumer de Kafka procesa la orden:
-   - Simula procesamiento de pago
-   - Actualiza inventario (PostgreSQL)
-   - Guarda orden completa (MongoDB)
-
-## Requisitos Técnicos
-- Backend: Python o Go
-- Bases de datos: PostgreSQL (inventario), MongoDB (órdenes)
-- Message Queue: Kafka con protobuf
-- Deployment: Docker
-
-## Casos Edge a Manejar
-- Inventario insuficiente
-- Productos inexistentes
-- Fallos de pago simulado
-- Órdenes duplicadas (idempotencia)
-
-## Arquitectura
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   PostgreSQL    │    │    MongoDB      │    │     Kafka       │
-│   (Inventory)   │    │   (Orders)      │    │   (Events)      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │  Application    │
-                    │  (REST API)     │
-                    └─────────────────┘
+```text
+acme-order-pipeline/
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── utils.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── db.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   ├── consumer/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   ├── proto/
+│   │   └── order.proto
+├── db/
+│   ├── ddl.sql
+│   ├── schema.js
+├── init-scripts/
+│   ├── mongodb/01-init.js
+│   ├── postgres/01-init.sql
+├── proto/
+│   └── order_events.proto
+├── docker-compose.yml
+├── Makefile
+├── README.md
 ```
 
-## Servicios Incluidos
 
-| Servicio | Puerto | Credenciales | Propósito |
-|----------|--------|--------------|-----------|
-| PostgreSQL | 5432 | postgres/postgres123 | Inventario y productos |
-| MongoDB | 27017 | admin/admin123 | Órdenes completadas |
-| Kafka | 9092 | - | Eventos asíncronos |
+Proyecto de prueba técnica: pipeline de órdenes con FastAPI, Kafka, PostgreSQL y MongoDB.
 
-### Prerrequisitos
-- Docker & Docker Compose
-- Make (opcional)
+---
 
-### Levantamiento
+## Servicios
+
+- **FastAPI API**: expone endpoint `/orders` para crear órdenes.
+- **Worker**: procesa órdenes de Kafka y las guarda en PostgreSQL y MongoDB.
+- **Kafka + Zookeeper**: manejo de mensajes de órdenes.
+- **PostgreSQL**: inventario de productos.
+- **MongoDB**: historial de órdenes.
+
+---
+
+## Requisitos
+
+- Docker y Docker Compose instalados.
+- Puerto 8000 disponible para la API.
+- Puertos 5432 (PostgreSQL), 27017 (MongoDB), 9092 (Kafka).
+
+---
+
+## Levantar la aplicación
+
+Desde la raíz del proyecto:
 
 ```bash
 docker compose up -d
-make kafka-create-topics
 ```
 
-### Verificar que todo esté funcionando
+Verifica los contenedores:
 
 ```bash
-# Verificar estado de servicios
-make status
-
-# Ver información de conexión
-make info
+docker compose ps
 ```
 
-### Ver comandos
+---
+
+## Endpoints
+
+### Crear orden (POST)
+
+```
+POST http://localhost:8000/orders
+Content-Type: application/json
+```
+
+Body de ejemplo:
+
+```json
+{
+   "items": [
+      {"id": 1, "quantity": 2},
+      {"id": 2, "quantity": 1}
+   ]
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+   "message": "Orden recibida",
+   "order_id": "UUID_GENERADO"
+}
+```
+
+
+### Documentación interactiva
+
+Abre en tu navegador:
+
+```
+http://localhost:8000/docs#/default/create_order_orders_post
+```
+
+---
+
+## Ver órdenes en MongoDB
 
 ```bash
-make help
+docker exec -it ecommerce_mongodb mongosh -u admin -p admin123 --authenticationDatabase admin
+```
+
+En mongosh:
+
+```js
+use ecommerce_orders
+db.orders.find().pretty()
+```
+
+---
+
+## Ver inventario en PostgreSQL
+
+```bash
+docker exec -it ecommerce_postgres psql -U postgres -d ecommerce_inventory
+```
+
+Consultar productos:
+
+```sql
+SELECT * FROM products;
+```
+
+---
+
+## Logs y debugging
+
+API:
+
+```bash
+docker logs -f ecommerce_api
+```
+
+Worker:
+
+```bash
+docker logs -f ecommerce_worker
+```
+
+---
+
+## Validaciones implementadas
+
+- Verificación de stock disponible.
+- Manejo de errores: producto inexistente, stock insuficiente.
+- Worker registra órdenes en MongoDB y actualiza stock en PostgreSQL.
+
+---
+
+## Reiniciar la aplicación
+
+```bash
+docker compose down
+docker compose up -d
 ```

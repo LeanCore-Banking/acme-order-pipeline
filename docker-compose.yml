@@ -19,6 +19,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   mongodb:
     image: mongo:7.0
     container_name: ecommerce_mongodb
@@ -38,7 +39,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-  # Zookeeper (required for Kafka)
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ecommerce_zookeeper
@@ -47,69 +48,80 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper/data
-      - zookeeper_logs:/var/lib/zookeeper/log
     networks:
       - ecommerce_network
-    healthcheck:
-      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  # Kafka Broker
+    # Healthcheck removido para compatibilidad con Windows
+
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ecommerce_kafka
     depends_on:
       zookeeper:
-        condition: service_healthy
+        condition: service_started
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_NUM_PARTITIONS: 3
-      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
-      - "9101:9101"
-    volumes:
-      - kafka_data:/var/lib/kafka/data
     networks:
       - ecommerce_network
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-  # Schema Registry
-  schema-registry:
-    image: confluentinc/cp-schema-registry:7.5.0
-    hostname: schema-registry
-    container_name: schema-registry
-    depends_on:
-      - kafka
+
+  api:
+    build: ./backend
+    container_name: ecommerce_api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
     ports:
-      - "8081:8081"
+      - "8000:8000"
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-  
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ecommerce_inventory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - ecommerce_network
+
+  worker:
+    build: ./backend
+    container_name: ecommerce_worker
+    command: python -m consumer.main
+    volumes:
+      - ./backend:/app
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ecommerce_inventory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PYTHONPATH: /app
+    depends_on:
+      kafka:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
 volumes:
   postgres_data:
     driver: local
   mongodb_data:
-    driver: local
-  zookeeper_data:
-    driver: local
-  zookeeper_logs:
     driver: local
   kafka_data:
     driver: local
