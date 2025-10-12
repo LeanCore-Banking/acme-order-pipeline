@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from app.db.postgres import get_postgres_connection
 from app.db.mongodb import get_mongo_connection
+from app.routers import products_router
 
 app = FastAPI(title="ACME Order Pipeline API")
 
+# Rutas base
 @app.get("/health")
 def health_check():
-    """Endpoint de salud para verificar el sistema"""
     pg = get_postgres_connection()
     mg = get_mongo_connection()
     return {
@@ -14,4 +15,7 @@ def health_check():
         "postgres_connected": pg is not None,
         "mongo_connected": mg is not None
     }
+
+# Rutas de productos
+app.include_router(products_router.router)
 
